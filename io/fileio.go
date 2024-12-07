@@ -31,3 +31,23 @@ func ReadFileWithMaxLength(path string, maxLength int) []string {
 
 	return lines
 }
+
+func SplitIntoSections(path string) [][]string {
+	lines := ReadFile(path)
+	var sections [][]string
+	var section []string
+	for _, line := range lines {
+		if len(line) == 0 {
+			if len(section) != 0 {
+				sections = append(sections, section)
+				section = make([]string, 0)
+			}
+		} else {
+			section = append(section, line)
+		}
+	}
+	if len(section) != 0 {
+		sections = append(sections, section)
+	}
+	return sections
+}
