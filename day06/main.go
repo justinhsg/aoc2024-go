@@ -4,15 +4,18 @@ import (
 	"fmt"
 	"maps"
 	"os"
+	"slices"
 
 	"github.com/aoc-2024-go/io"
 	"github.com/aoc-2024-go/types"
+	"github.com/aoc-2024-go/utils"
 )
 
 var start types.IntPair
 var width, height int
 var obstacles map[types.IntPair]bool = make(map[types.IntPair]bool)
 var dRow, dCol []int = []int{-1, 0, 1, 0}, []int{0, 1, 0, -1}
+var obstaclesByRow, obstaclesByColumn map[int][]int = make(map[int][]int), make(map[int][]int)
 
 func main() {
 	args := os.Args[1:]
@@ -38,8 +41,17 @@ func main() {
 			}
 			if r == rune('#') {
 				obstacles[types.NewIntPair(row, col)] = true
+				obstaclesByColumn[col] = append(obstaclesByColumn[col], row)
+				obstaclesByRow[row] = append(obstaclesByRow[row], col)
 			}
 		}
+	}
+
+	for col := range maps.Keys(obstaclesByColumn) {
+		slices.Sort(obstaclesByColumn[col])
+	}
+	for row := range maps.Keys(obstaclesByRow) {
+		slices.Sort(obstaclesByRow[row])
 	}
 
 	for pos.Fst >= 0 && pos.Fst < height && pos.Snd >= 0 && pos.Snd < width {
@@ -53,7 +65,6 @@ func main() {
 	}
 
 	var part1Answer, part2Answer int
-
 	for extra := range maps.Keys(visited) {
 		if extra == start {
 			continue
@@ -70,25 +81,81 @@ func main() {
 }
 
 func tryWithObstacle(extra types.IntPair) bool {
+	originalRowObs := obstaclesByRow[extra.Fst]
+	obstaclesByRow[extra.Fst] = insertIntoArray(originalRowObs, extra.Snd)
+
+	originalColObs := obstaclesByColumn[extra.Snd]
+	obstaclesByColumn[extra.Snd] = insertIntoArray(originalColObs, extra.Fst)
+
 	visited := make(map[types.IntTriple]bool)
 
 	posAndDir := types.NewIntTriple(start.Fst, start.Snd, 0)
 	isLoop := false
 
-	for (posAndDir.Fst >= 0 && posAndDir.Fst < height && posAndDir.Snd >= 0 && posAndDir.Snd < width) &&
-		!isLoop {
+	for !isLoop {
 		if visited[posAndDir] {
 			isLoop = true
 			break
 		}
 		visited[posAndDir] = true
-		nextPos := types.NewIntPair(posAndDir.Fst+dRow[posAndDir.Thd], posAndDir.Snd+dCol[posAndDir.Thd])
-		if obstacles[nextPos] || nextPos == extra {
-			posAndDir = types.NewIntTriple(posAndDir.Fst, posAndDir.Snd, (posAndDir.Thd+1)%4)
-		} else {
-			posAndDir = types.NewIntTriple(nextPos.Fst, nextPos.Snd, posAndDir.Thd)
-		}
-	}
-	return isLoop
+		row := posAndDir.Fst
+		col := posAndDir.Snd
+		dir := posAndDir.Thd
 
+		isObstructed := false
+		if dir == 0 {
+			for idx := len(obstaclesByColumn[col]) - 1; idx >= 0; idx-- {
+				if obstaclesByColumn[col][idx] < row {
+					row = obstaclesByColumn[col][idx] + 1
+					isObstructed = true
+					break
+				}
+			}
+		} else if dir == 1 {
+			for idx := 0; idx < len(obstaclesByRow[row]); idx++ {
+				if obstaclesByRow[row][idx] > col {
+					col = obstaclesByRow[row][idx] - 1
+					isObstructed = true
+					break
+				}
+			}
+		} else if dir == 2 {
+			for idx := 0; idx < len(obstaclesByColumn[col]); idx++ {
+				if obstaclesByColumn[col][idx] > row {
+					row = obstaclesByColumn[col][idx] - 1
+					isObstructed = true
+					break
+				}
+			}
+		} else if dir == 3 {
+			for idx := len(obstaclesByRow[row]) - 1; idx >= 0; idx-- {
+				if obstaclesByRow[row][idx] < col {
+					col = obstaclesByRow[row][idx] + 1
+					isObstructed = true
+					break
+				}
+			}
+		}
+		if !isObstructed {
+			break
+		}
+		posAndDir = types.NewIntTriple(row, col, (dir+1)%4)
+	}
+	obstaclesByRow[extra.Fst] = originalRowObs
+	obstaclesByColumn[extra.Snd] = originalColObs
+	return isLoop
+}
+
+func insertIntoArray(arr []int, i int) []int {
+	newArr := make([]int, len(arr)+1)
+	idx, _ := utils.Find(arr, func(x int) bool {
+		return x > i
+	})
+	if idx == -1 {
+		idx = len(arr)
+	}
+	copy(newArr[:idx], arr[:idx])
+	newArr[idx] = i
+	copy(newArr[idx+1:], arr[idx:])
+	return newArr
 }
