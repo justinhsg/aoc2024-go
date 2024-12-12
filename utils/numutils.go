@@ -11,3 +11,11 @@ func NDigits(num int) int {
 	}
 	return digits
 }
+
+func Abs(x int) int {
+	if x < 0 {
+		return -x
+	} else {
+		return x
+	}
+}
