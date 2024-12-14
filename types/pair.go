@@ -9,8 +9,16 @@ type Pair[T any, U any] struct {
 
 type IntPair Pair[int, int]
 
+func (p IntPair) Destruct() (int, int) {
+	return p.Fst, p.Snd
+}
+
 func AddPair(p1 IntPair, p2 IntPair) IntPair {
 	return IntPair{p1.Fst + p2.Fst, p1.Snd + p2.Snd}
+}
+
+func (p IntPair) MultScalar(x int) IntPair {
+	return IntPair{p.Fst * x, p.Snd * x}
 }
 
 func DiffPair(p1 IntPair, p2 IntPair) IntPair {

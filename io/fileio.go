@@ -51,3 +51,39 @@ func SplitIntoSections(path string) [][]string {
 	}
 	return sections
 }
+
+func PrepareFileForWriting(path string) {
+	f, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+	os.Truncate(path, 0)
+}
+
+func AppendLine(line string, path string) {
+	f, err := os.OpenFile(path, os.O_APPEND, 0644)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	_, err = f.WriteString(line + "\n")
+	if err != nil {
+		panic(err)
+	}
+}
+func AppendLines(lines []string, path string) {
+	f, err := os.OpenFile(path, os.O_APPEND, 0644)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	for _, line := range lines {
+		_, err = f.WriteString(line + "\n")
+		if err != nil {
+			panic(err)
+		}
+	}
+}
