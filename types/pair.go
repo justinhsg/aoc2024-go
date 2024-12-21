@@ -1,6 +1,10 @@
 package types
 
-import "github.com/aoc-2024-go/utils"
+import (
+	"fmt"
+
+	"github.com/aoc-2024-go/utils"
+)
 
 type Pair[T any, U any] struct {
 	Fst T
@@ -8,6 +12,14 @@ type Pair[T any, U any] struct {
 }
 
 type IntPair Pair[int, int]
+
+func (p Pair[T, U]) Destruct() (T, U) {
+	return p.Fst, p.Snd
+}
+
+func (p IntPair) String() string {
+	return fmt.Sprintf("(%d, %d)", p.Fst, p.Snd)
+}
 
 func (p IntPair) Destruct() (int, int) {
 	return p.Fst, p.Snd
