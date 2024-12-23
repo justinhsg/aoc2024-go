@@ -39,3 +39,13 @@ func Find[T any](slc []T, fn func(T) bool) (int, T) {
 	var def T
 	return -1, def
 }
+
+func Filter[T any](slc []T, fn func(T) bool) []T {
+	var filtered []T
+	for _, el := range slc {
+		if fn(el) {
+			filtered = append(filtered, el)
+		}
+	}
+	return filtered
+}

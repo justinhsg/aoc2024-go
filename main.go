@@ -54,8 +54,8 @@ func main() {
 func measurePerformance(day int, isSample bool, runAll bool) {
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)
-	t.AppendHeader(table.Row{"Day", "Part 1", "Part 2", "Duration"})
-	var totalDuration time.Duration
+	t.AppendHeader(table.Row{"Day", "Part 1", "Part 2", "Duration (ms)"})
+	var totalDuration float64
 	if !runAll {
 		part1, part2, duration := solve(isSample, day)
 		t.AppendRow([]interface{}{day, part1, part2, duration})
@@ -72,13 +72,13 @@ func measurePerformance(day int, isSample bool, runAll bool) {
 	t.Render()
 }
 
-func solve(isSample bool, day int) (string, string, time.Duration) {
+func solve(isSample bool, day int) (string, string, float64) {
 	var solution utils.Solution = getSolution(day)
 	var dirName string = fmt.Sprintf("day%02d", day)
 	startTime := time.Now()
 	part1, part2 := solution.Solve(isSample, dirName)
 	endTime := time.Now()
-	duration := endTime.Sub(startTime)
+	duration := float64(endTime.Sub(startTime)) / float64(time.Millisecond)
 	return part1, part2, duration
 }
 
